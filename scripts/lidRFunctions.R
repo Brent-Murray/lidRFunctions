@@ -166,7 +166,6 @@ project_las <- function(folderpath, epsg_code, outfolder, exportLAS = TRUE){
       
       if (epsg(laz) == 0){
         epsg(laz) <- epsg_code
-        
       } else{
         laz <- spTransform(laz, CRS(paste0("EPSG:", as.character(epsg_code))))
       }
@@ -214,6 +213,7 @@ generate_chm <- function(ctg_normalized, cell_size, outfolder, outname = "chm.ti
   chm <- grid_canopy(ctg, cell_size, pitfree(c(0,2,5,10,15), c(0,1.5)))
   writeRaster(chm, filename = file.path(outfolder, outname), format = "GTiff", overwrite = TRUE)
 }
+
 
 # Calculate Nominal Point Spacing
 nps <- function(las){
@@ -401,4 +401,14 @@ crown_metrics <- function(ctg, outpath, outname = "crowns.shp"){
   crowns_ctg <- do.call(rbind, crowns_ctg)
   st_write(crowns_ctg, file.path(outpath, outname))
   return(crowns_ctg)
+}
+
+
+# ROI Interesect
+roi_intersect <- function(ctg, roi, filter=""){
+  ctg <- readLAScatalog(ctg, filter = filter) # read in lidar files
+  roi <- st_read(roi) # read in ROI file
+  roi <- st_transform(roi, crs(ctg)) # transfrom crs of roi to match ctg
+  ctg <- catalog_intersect(ctg, roi) # find intersecting tiles
+  return(ctg) # return ctg
 }
